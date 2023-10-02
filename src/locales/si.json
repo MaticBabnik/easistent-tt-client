@@ -35,6 +35,12 @@
     "title": "Easistent Timetable",
     "p1": "Ta projekt obstaja z namenom, da zamenja Easistentov urnik, ki je <b>kinda bad</b>.",
     "p2": "Ustvaril ga je <a href=\"https://studen.me\" target=\"_blank\">David Studen</a> in uporablja podatke, ki so na voljo na <a href=\"https://github.com/MaticBabnik/easistent-tt\" target=\"_blank\">APIu</a> od <a href=\"https://babnik.io\" target=\"_blank\">Matica Babnika</a>.",
-    "p3": "Izvirna koda je na voljo na <a href=\"https://github.com/dstuden/easistent-tt-client\" target=\"_blank\">GitHubu</a>."
+    "p3": "Izvirna koda je na voljo na <a href=\"https://github.com/dstuden/easistent-tt-client\" target=\"_blank\">GitHubu</a>.",
+    "dev": {
+      "title": "Podatki za razvijalce",
+      "api": "Streznik",
+      "frontend": "Spletna aplikacija",
+      "errors": "Dnevnik napak"
+    }
   }
 }
