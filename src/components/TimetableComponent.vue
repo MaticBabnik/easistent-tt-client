@@ -133,7 +133,7 @@ const getFilteredEvents = computed(() => {
 })
 
 const isSpreadable = (period: Event[]) => {
-  if (period?.length > 2) return true
+  if (period?.length > 2) return period.length
 
   return false
 }
@@ -280,7 +280,7 @@ const { t } = useI18n()
             })
           "
         >
-          <EllipsisIcon></EllipsisIcon>
+          + {{ getFilteredEvents[day_i][period - 1].length - 1 }}
         </div>
       </div>
     </template>
@@ -292,7 +292,7 @@ const { t } = useI18n()
   height: 0;
 }
 .timetable {
-  @apply grid rounded-md shadow-lg overflow-auto shadow-2xl bg-gray-100 h-full dark:bg-gray-700 dark:text-gray-200;
+  @apply grid rounded-md shadow-lg overflow-auto shadow-2xl bg-gray-100 h-full dark:bg-gray-800 dark:text-gray-200;
 
   .day {
     @apply flex xl:flex-row flex-col justify-between xl:items-end sticky top-0 px-2 py-1 pt-1 sm:px-4 sm:py-2 sm:pt-3 bg-gray-50 border-r border-gray-200 shadow-sm block dark:bg-gray-700 dark:border-gray-500;
@@ -315,8 +315,7 @@ const { t } = useI18n()
   }
 
   .period {
-    @apply flex 2xl:flex-row flex-col py-2 mx-2 justify-between gap-2
-    border-x bg-gray-200 dark:bg-gray-600 dark:border-gray-500;
+    @apply flex 2xl:flex-row flex-col py-2 mx-2 justify-between gap-2; //bg-gray-200 dark:bg-gray-800 dark:border-gray-800 border-x
 
     &.spreadable .event:not(:first-of-type) {
       @apply hidden;

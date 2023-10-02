@@ -7,11 +7,11 @@ import TimetableComponent from '@/components/TimetableComponent.vue'
 import FilterInputComponent from '@/components/FilterInputComponent.vue'
 import { storeToRefs } from 'pinia'
 import TrashIcon from '@/icons/TrashIcon.vue'
-import ChevronUp from '@/icons/ChevronUpIcon.vue'
 import { useCommonStore } from '@/stores/common'
 import INeedMoreBulletsComponent from '@/components/INeedMoreBulletsComponent.vue'
 import PeriodModalComponent from '@/components/PeriodModalComponent.vue'
 import { useRoute, useRouter } from 'vue-router'
+import FilterModeButton from '@/components/FilterModeButton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,11 +25,13 @@ const getSortedRooms = storeToRefs(dataStore).getSortedRooms
 const getSortedClasses = storeToRefs(dataStore).getSortedClasses
 
 const filterData = ref<FilterData>({
-  teachers: new Set([getSortedTeachers.value[0].key]),
+  teachers: new Set([]),
   classes: new Set([]),
   rooms: new Set([]),
   globalSearch: ['']
 })
+
+const filterMode = ref<'replace' | 'add'>('replace')
 
 const hideFilters = ref(screenData.value.width < 900)
 
@@ -98,7 +100,7 @@ const changeFilters = (
           : queryString.value.globalSearch?.replace(data.globalSearch ?? '', '')
     }
 
-  const query = Object.fromEntries(Object.entries(q).filter(([_, value]) => value !== ''))
+  const query = Object.fromEntries(Object.entries(q).filter((x) => x[1] !== ''))
 
   router.push({
     query
@@ -140,16 +142,16 @@ const updateOnFilterEvent = (data: {
     display: string
     value: string
   }
-  mode: 'replace' | 'add'
 }) => {
   if (data.key === 'globalSearch') return
 
-  changeFilters(data.mode, {
+  changeFilters(filterMode.value, {
     [data.key]: [data.value.value]
   })
 }
 
 const timer = ref()
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const updateGlobalSearch = (e: Event) => {
   clearTimeout(timer.value)
 
@@ -193,40 +195,44 @@ const { t } = useI18n()
 <template>
   <div class="showFilters" @click="hideFilters = false" v-if="hideFilters">Show filters</div>
 
-  <div class="filters" v-show="!hideFilters">
-    <FilterInputComponent
-      type="dropdown"
-      :title="t('home.filterTitles.teachers')"
-      :dropdownData="teacherDropdownData"
-      @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'teachers' })"
-      :reset="filterData.teachers.size === 0"
-    ></FilterInputComponent>
-    <FilterInputComponent
-      type="dropdown"
-      :title="t('home.filterTitles.rooms')"
-      :dropdownData="roomDropdownData"
-      @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'rooms' })"
-      :reset="filterData.rooms.size === 0"
-    ></FilterInputComponent>
-    <FilterInputComponent
-      type="dropdown"
-      :title="t('home.filterTitles.classes')"
-      :dropdownData="classesDropdownData"
-      @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'classes' })"
-      :reset="filterData.classes.size === 0"
-    ></FilterInputComponent>
-    <FilterInputComponent
+  <Teleport to="#filter-teleport">
+    <div class="filters">
+      <!-- v-show="!hideFilters" -->
+      <FilterModeButton v-model:value="filterMode" />
+      <FilterInputComponent
+        type="dropdown"
+        :title="t('home.filterTitles.teachers')"
+        :dropdownData="teacherDropdownData"
+        @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'teachers' })"
+        :reset="filterData.teachers.size === 0"
+      ></FilterInputComponent>
+      <FilterInputComponent
+        type="dropdown"
+        :title="t('home.filterTitles.rooms')"
+        :dropdownData="roomDropdownData"
+        @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'rooms' })"
+        :reset="filterData.rooms.size === 0"
+      ></FilterInputComponent>
+      <FilterInputComponent
+        type="dropdown"
+        :title="t('home.filterTitles.classes')"
+        :dropdownData="classesDropdownData"
+        @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'classes' })"
+        :reset="filterData.classes.size === 0"
+      ></FilterInputComponent>
+      <!-- <FilterInputComponent
       type="search"
       :placeholder="t('home.filterTitles.search')"
       :dropdownData="classesDropdownData"
       @input="updateGlobalSearch"
       :reset="filterData.globalSearch[0] === ''"
-    ></FilterInputComponent>
-    <div class="clearFilterButton" @click="clearFilters"><TrashIcon></TrashIcon></div>
-    <div class="hideFilterButton" @click="hideFilters = true" v-if="screenData.width < 900">
-      <ChevronUp></ChevronUp>
+    ></FilterInputComponent> -->
+      <div class="clearFilterButton" @click="clearFilters"><TrashIcon></TrashIcon></div>
+      <!-- <div class="hideFilterButton" @click="hideFilters = true" v-if="screenData.width < 900">
+        <ChevronUp></ChevronUp>
+      </div> -->
     </div>
-  </div>
+  </Teleport>
 
   <div class="appliedFilters">
     <template v-for="(filters, filters_key) in filterData" :key="filters_key">
@@ -276,7 +282,9 @@ const { t } = useI18n()
   @apply w-full;
 }
 
-.filters,
+.filters {
+  @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center justify-center p-2;
+}
 .appliedFilters {
   @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center p-2;
 }
@@ -294,10 +302,10 @@ const { t } = useI18n()
 }
 
 .clearFilterButton {
-  @apply w-8 h-8 rounded-full bg-red-300 flex items-center justify-center cursor-pointer flex items-center justify-center active:scale-90 transition-all;
+  @apply w-8 h-8 rounded-full bg-red-300 flex items-center justify-center cursor-pointer active:scale-90 transition-all;
 }
 
 .hideFilterButton {
-  @apply w-8 h-8 rounded-full bg-blue-300 flex items-center justify-center cursor-pointer flex items-center justify-center active:scale-90 transition-all;
+  @apply w-8 h-8 rounded-full bg-blue-300 flex items-center justify-center cursor-pointer  active:scale-90 transition-all;
 }
 </style>

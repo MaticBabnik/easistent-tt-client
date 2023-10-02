@@ -42,6 +42,7 @@ const openNav = ref(false)
 <template>
   <header>
     <h1>{{ getHeader() }}</h1>
+    <div id="filter-teleport"></div>
     <MenuIcon v-if="screenData.width < 700" @click="openNav = true"></MenuIcon>
     <nav v-if="screenData.width > 700">
       <RouterLink :to="{ name: 'home' }">{{ t('nav.home') }}</RouterLink>

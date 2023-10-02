@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { watch, ref } from 'vue'
-import CirclePlusIcon from '@/icons/CirclePlusIcon.vue'
-import ArrowRotateIcon from '@/icons/ArrowRotateIcon.vue'
+import ChevronUpIcon from '@/icons/ChevronUpIcon.vue'
 
 const props = defineProps<{
   type: 'dropdown' | 'search' | 'week'
@@ -18,12 +17,10 @@ const emits = defineEmits<{
   (
     e: 'dropdownChange',
     value: {
-      
       value: {
         display: string
         value: string
       }
-      mode: 'replace' | 'add'
     }
   ): void
   (e: 'searchChange', value: string): void
@@ -32,29 +29,26 @@ const emits = defineEmits<{
 const inputDropdownData = ref({
   items: props.dropdownData,
   selected: undefined as { display: string; value: string } | undefined,
-  showDropdown: false,
-  mode: 'replace' as 'replace' | 'add'
+  showDropdown: false
 })
 
 const searchRef = ref<HTMLInputElement>()
 
-const mouseLeaveLogic = (e: MouseEvent) => {
+const mouseLeaveLogic = () => {
   if (props.type === 'dropdown') inputDropdownData.value.showDropdown = false
 }
 
-const mouseClickLogic = (e: MouseEvent) => {
+const mouseClickLogic = () => {
   if (props.type === 'dropdown')
     inputDropdownData.value.showDropdown = !inputDropdownData.value.showDropdown
 }
 
 const changeDropdownData = (value: { display: string; value: string }) => {
   inputDropdownData.value.selected = value
-
-  if (inputDropdownData.value.mode === 'replace') inputDropdownData.value.showDropdown = false
+  inputDropdownData.value.showDropdown = false
 
   emits('dropdownChange', {
-    value: value,
-    mode: inputDropdownData.value.mode
+    value: value
   })
 }
 
@@ -78,7 +72,6 @@ watch(props, () => {
 
 <template>
   <div class="wrapper">
-    <div class="title" v-if="props.title">{{ props.title }}:</div>
     <div
       class="filterInput"
       :class="{
@@ -91,18 +84,11 @@ watch(props, () => {
       @click.self="mouseClickLogic"
     >
       <template v-if="props.type === 'dropdown'">
-        <div
-          class="mode"
-          @click="inputDropdownData.mode = inputDropdownData.mode === 'replace' ? 'add' : 'replace'"
-        >
-          <CirclePlusIcon class="icon" v-if="inputDropdownData.mode === 'add'"></CirclePlusIcon>
-          <ArrowRotateIcon
-            class="icon"
-            v-if="inputDropdownData.mode === 'replace'"
-          ></ArrowRotateIcon>
+        <div class="title" @click="mouseClickLogic">
+          {{ props.title }}
         </div>
-        <div class="optionDisplay" @click="mouseClickLogic">
-          {{ inputDropdownData.selected?.display }}
+        <div class="mode" @click="mouseClickLogic">
+          <ChevronUpIcon class="icon" />
         </div>
         <Transition name="dropdown">
           <div class="optionContainer" v-show="inputDropdownData.showDropdown">
@@ -137,10 +123,6 @@ watch(props, () => {
 }
 .wrapper {
   @apply flex flex-row gap-2 items-center;
-
-  .title {
-    @apply text-gray-500 dark:text-gray-400;
-  }
 }
 .filterInput {
   @apply relative select-none;
@@ -150,7 +132,9 @@ watch(props, () => {
 
     &.open {
       @apply rounded-none rounded-t-lg border-b-0 border-red-300 border-2;
-
+      .mode .icon {
+        @apply rotate-0;
+      }
       .optionContainer {
         @apply rounded-none rounded-b-lg border-t-0 border-red-300 border-2 dark:border-red-300;
         width: calc(100% + 4px);
@@ -158,18 +142,18 @@ watch(props, () => {
     }
 
     .mode {
-      @apply flex flex-col justify-center py-2 pr-2 transition-all active:scale-90;
+      @apply flex flex-col justify-center py-1 pr-1 transition-all active:scale-90 float-right;
       .icon {
-        @apply w-4 h-4;
+        @apply w-4 h-4 rotate-180 transition-all ease-in-out duration-100;
       }
     }
 
-    .optionDisplay {
-      @apply z-10 text-gray-600 overflow-hidden overflow-ellipsis whitespace-nowrap text-left flex items-center dark:text-gray-200;
+    .title {
+      @apply z-10 text-gray-500 overflow-hidden overflow-ellipsis whitespace-nowrap text-left flex items-center dark:text-gray-300 flex-1;
     }
 
     .optionContainer {
-      @apply absolute left-1/2 transform -translate-x-1/2 h-56 overflow-y-auto bg-white mt-9 z-20 rounded-md shadow-lg cursor-pointer border border-gray-300 p-1 flex flex-col gap-1 text-left text-gray-600 w-full
+      @apply absolute left-1/2 transform -translate-x-1/2 h-56 overflow-y-auto bg-white mt-7 z-20 rounded-md shadow-lg cursor-pointer border border-gray-300 p-1 flex flex-col gap-1 text-left text-gray-600 w-full
       dark:bg-gray-700 dark:border-gray-500 dark:text-gray-200;
 
       .option {
