@@ -2,7 +2,6 @@
 import { useDataStore } from '@/stores/data'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
-import type { FilterData } from '@/components/TimetableComponent.vue'
 import XIcon from '@/icons/XIcon.vue'
 
 const dataStore = useDataStore()
@@ -11,12 +10,12 @@ const classes = storeToRefs(dataStore).classes
 const rooms = storeToRefs(dataStore).rooms
 
 const props = defineProps<{
-  type: keyof FilterData
+  type: 'teachers' | 'rooms' | 'classes'
   dataKey: string
 }>()
 
 const emits = defineEmits<{
-  (e: 'removeFilter', data: { key: keyof FilterData; value: string }): void
+  (e: 'removeFilter', data: { key: 'teachers' | 'rooms' | 'classes'; value: string }): void
 }>()
 
 const getTypeColor = computed(() => {
@@ -27,8 +26,6 @@ const getTypeColor = computed(() => {
       return 'bg-yellow-500'
     case 'classes':
       return 'bg-green-500'
-    case 'globalSearch':
-      return 'bg-purple-500'
     default:
       return 'bg-red-500'
   }
@@ -42,8 +39,6 @@ const getTitle = computed(() => {
       return rooms.value.get(props.dataKey)?.display
     case 'classes':
       return classes.value.get(props.dataKey)?.display
-    case 'globalSearch':
-      return props.dataKey
     default:
       return 'Error'
   }

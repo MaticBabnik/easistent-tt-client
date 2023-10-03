@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import XIcon from '@/icons/XIcon.vue'
-import { useDataStore, type Event } from '@/stores/data'
+import { useDataStore, type Event, type Week } from '@/stores/data'
 import { getColor } from '@/utils/classColor'
 import { storeToRefs } from 'pinia'
 
@@ -10,6 +10,7 @@ const props = defineProps<{
     date: Date
     period: number
   }
+  currentWeek: Week
   show: boolean
 }>()
 
@@ -18,16 +19,15 @@ const emits = defineEmits<{
 }>()
 
 const dataStore = useDataStore()
-const currentWeek = storeToRefs(dataStore).currentWeek
 const teachers = storeToRefs(dataStore).teachers
 const rooms = storeToRefs(dataStore).rooms
 const classess = storeToRefs(dataStore).classes
 
 const getTimes = (periodIndex: number) => {
-  const midnight = new Date(currentWeek.value.dates[0]).getTime()
+  const midnight = new Date(props.currentWeek.dates[0]).getTime()
 
-  const start = new Date(midnight + currentWeek.value.hourOffsets[periodIndex].startOffset)
-  const end = new Date(midnight + currentWeek.value.hourOffsets[periodIndex].endOffset)
+  const start = new Date(midnight + props.currentWeek.hourOffsets[periodIndex].startOffset)
+  const end = new Date(midnight + props.currentWeek.hourOffsets[periodIndex].endOffset)
 
   return {
     start: `${start.getHours()}:${start.getMinutes().toString().padStart(2, '0')}`,

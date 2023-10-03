@@ -1,17 +1,16 @@
 <script setup lang="ts">
-import { useDataStore } from '@/stores/data'
+import { useDataStore, weekGetActive } from '@/stores/data'
 import { useI18n } from 'vue-i18n'
 import type { Event, PeriodFlag, Week } from '@/stores/data'
 import { useCommonStore } from '@/stores/common'
-import { computed } from 'vue'
+import { computed, nextTick, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { getColor } from '@/utils/classColor'
 
 export interface FilterData {
-  teachers: Set<string>
-  classes: Set<string>
-  rooms: Set<string>
-  globalSearch: string[]
+  teachers: string[]
+  classes: string[]
+  rooms: string[]
 }
 
 const commonStore = useCommonStore()
@@ -45,6 +44,8 @@ const emits = defineEmits<{
     }
   ): void
 }>()
+
+const active = computed(() => weekGetActive(props.week, dataStore.time))
 
 const tablet = computed(() => {
   return screenData.value.width < 1300
@@ -99,31 +100,14 @@ const getFilteredEvents = computed(() => {
       if (!filtered[day_i][period_i]) filtered[day_i][period_i] = []
 
       filtered[day_i][period_i] = period.filter((e) => {
-        if (
-          (props.filterData.teachers.size === 0 ||
-            props.filterData.teachers.has(e.teacherKey ?? '')) &&
-          (props.filterData.classes.size === 0 || props.filterData.classes.has(e.classKey ?? '')) &&
-          (props.filterData.rooms.size === 0 || props.filterData.rooms.has(e.classroomKey ?? '')) &&
-          (props.filterData.globalSearch[0] === '' ||
-            e.title.long.toLowerCase().includes(props.filterData.globalSearch[0].toLowerCase()) ||
-            (e.teacherKey &&
-              teachers.value
-                .get(e.teacherKey)
-                ?.fullName.toLowerCase()
-                .includes(props.filterData.globalSearch[0].toLowerCase())) ||
-            (e.classKey &&
-              classes.value
-                .get(e.classKey)
-                ?.display.toLowerCase()
-                .includes(props.filterData.globalSearch[0].toLowerCase())) ||
-            (e.classroomKey &&
-              rooms.value
-                .get(e.classroomKey)
-                ?.display.toLowerCase()
-                .includes(props.filterData.globalSearch[0].toLowerCase())))
+        return (
+          (props.filterData.teachers.length === 0 ||
+            props.filterData.teachers.includes(e.teacherKey ?? '')) &&
+          (props.filterData.classes.length === 0 ||
+            props.filterData.classes.includes(e.classKey ?? '')) &&
+          (props.filterData.rooms.length === 0 ||
+            props.filterData.rooms.includes(e.classroomKey ?? ''))
         )
-          return true
-        else return false
       })
     })
   })
@@ -186,6 +170,12 @@ const changeFilter = (key: keyof FilterData, value: string[]) => {
 }
 
 const { t } = useI18n()
+
+onMounted(async () => {
+  await nextTick()
+  const activePeriod = document.querySelector('.period.active') as HTMLElement
+  activePeriod?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+})
 </script>
 
 <template>
@@ -195,7 +185,7 @@ const { t } = useI18n()
       :style="getPosition(day_i + 2, 0)"
       v-for="(day, day_i) in week.dates"
       :key="day_i"
-      :class="{ last: day_i === week.dates.length - 1 }"
+      :class="{ last: day_i === week.dates.length - 1, active: day_i == active.dayIndex }"
     >
       <span class="weekday">{{ t(`home.days.${getWeekDay(new Date(day))}`) }}</span>
       <span class="date"
@@ -209,6 +199,7 @@ const { t } = useI18n()
       v-for="i in week.hourOffsets.length"
       :key="i"
       :style="getPosition(1, i + 1)"
+      :class="{ active: i - 1 == active.periodIndex }"
     >
       <span>
         {{ getTimes(i - 1).start }}
@@ -224,7 +215,10 @@ const { t } = useI18n()
     <template v-for="(day, day_i) in week.dates" :key="day">
       <div
         class="period"
-        :class="{ spreadable: isSpreadable(getFilteredEvents[day_i][period - 1]) }"
+        :class="{
+          spreadable: isSpreadable(getFilteredEvents[day_i][period - 1]),
+          active: day_i == active.dayIndex && period - 1 == active.periodIndex
+        }"
         v-for="period in week.hourOffsets.length"
         :key="period"
         :style="getPosition(day_i + 2, period + 1)"
@@ -294,9 +288,10 @@ const { t } = useI18n()
   @apply grid rounded-md overflow-auto shadow-2xl bg-gray-100 h-full dark:bg-gray-800 dark:text-gray-200;
 
   .day {
-    //TODO: is this flex or block?
-    @apply flex xl:flex-row flex-col justify-between xl:items-end sticky top-0 px-2 py-1 pt-1 sm:px-4 sm:py-2 sm:pt-3 bg-gray-50 border-r border-gray-200 shadow-sm block dark:bg-gray-700 dark:border-gray-500;
-
+    @apply flex xl:flex-row flex-col justify-between xl:items-end sticky top-0 px-2 py-1 pt-1 sm:px-4 sm:py-2 sm:pt-3 bg-gray-50 border-r border-gray-200 shadow-sm dark:bg-gray-700 dark:border-gray-500;
+    &.active {
+      @apply bg-gray-200 dark:bg-gray-600;
+    }
     &.last {
       @apply mr-1 border-r-0;
     }
@@ -312,10 +307,17 @@ const { t } = useI18n()
 
   .periodH {
     @apply text-gray-400 text-sm sm:text-base w-12 sm:w-16 flex flex-col items-center text-center justify-between py-2 sm:py-4 sticky left-0 bg-gray-50 border-b dark:bg-gray-700 dark:border-gray-500;
+    &.active {
+      @apply bg-gray-200 dark:bg-gray-600;
+    }
   }
 
   .period {
     @apply flex 2xl:flex-row flex-col py-2 mx-2 justify-between gap-2; //bg-gray-200 dark:bg-gray-800 dark:border-gray-800 border-x
+
+    &.active > * {
+      @apply outline-gray-300 dark:outline-gray-500 outline-1 outline;
+    }
 
     &.spreadable .event:not(:first-of-type) {
       @apply hidden;

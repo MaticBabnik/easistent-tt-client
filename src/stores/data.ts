@@ -86,13 +86,37 @@ export function wrapPromise<T>(promise: Promise<T>): Promised<T> {
   return p
 }
 
+export type FWeek = { week: Week; events: Event[][][] }
+
+export function weekGetActive(week: Week, time: number = Date.now()) {
+  const DAY = 1000 * 60 * 60 * 24
+  const dayOffsets = week.dates.map((date) => new Date(date).valueOf()).map((d) => time - d)
+
+  const dayIndex = dayOffsets.findIndex((d) => d < DAY)
+  const dayOffset = dayOffsets[dayIndex]
+
+  const periodIndex = week.hourOffsets.findIndex(
+    (x) => x.endOffset >= dayOffset || x.startOffset >= dayOffset
+  )
+
+  if (periodIndex !== -1) {
+    const activePeriodStart = week.hourOffsets[periodIndex].startOffset
+    // only show "upcoming" as active if it's within 12 hours
+    if (Math.abs(activePeriodStart - time) > DAY / 2) return { dayIndex: -1, periodIndex: -1 }
+  }
+
+  return { dayIndex, periodIndex }
+}
+
 export const useDataStore = defineStore('data', () => {
   const teachers = ref<Map<string, Teacher>>(new Map<string, Teacher>())
   const rooms = ref<Map<string, Room>>(new Map<string, Room>())
   const classes = ref<Map<string, Class>>(new Map<string, Class>())
   const currentWeek = ref<number>(0)
+  const time = ref<number>(Date.now())
+  setInterval(() => (time.value = Date.now()), 60_000)
 
-  async function fetchWeek(week?: number): Promise<{ week: Week; events: Event[][][] }> {
+  async function fetchWeek(week?: number): Promise<FWeek> {
     const url = new URL(import.meta.env.VITE_API_PATH, document.location.href)
     url.pathname += 'all'
     if (week) url.searchParams.set('week', week.toString())
@@ -154,7 +178,8 @@ export const useDataStore = defineStore('data', () => {
     getSortedTeachers,
     getSortedRooms,
     getSortedClasses,
-
+    time,
+    currentWeek,
     fetchWeek
   }
 })

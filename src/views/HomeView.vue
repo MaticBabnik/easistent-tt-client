@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { useDataStore, type Event as PeriodEvent, wrapPromise } from '@/stores/data'
+import {
+  useDataStore,
+  type Event as PeriodEvent,
+  wrapPromise,
+  type Promised,
+  type FWeek
+} from '@/stores/data'
 import { useI18n } from 'vue-i18n'
-import { computed, onMounted, ref, watch } from 'vue'
-import type { FilterData } from '@/components/TimetableComponent.vue'
+import { computed, reactive, ref, watch } from 'vue'
 import TimetableComponent from '@/components/TimetableComponent.vue'
 import FilterInputComponent from '@/components/FilterInputComponent.vue'
 import { storeToRefs } from 'pinia'
@@ -10,56 +15,69 @@ import TrashIcon from '@/icons/TrashIcon.vue'
 import { useCommonStore } from '@/stores/common'
 import INeedMoreBulletsComponent from '@/components/INeedMoreBulletsComponent.vue'
 import PeriodModalComponent from '@/components/PeriodModalComponent.vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, type LocationQuery } from 'vue-router'
 import FilterModeButton from '@/components/FilterModeButton.vue'
 import SpinnerIcon from '@/icons/SpinnerIcon.vue'
+import WeekSwitcher from '@/components/WeekSwitcher.vue'
+import { parseQueryParam, qsList, qsWeek } from '@/queryUtil'
 
 const route = useRoute()
 const router = useRouter()
-
 const commonStore = useCommonStore()
 const screenData = storeToRefs(commonStore).screenData
-
 const dataStore = useDataStore()
 
-const week = ref(wrapPromise(dataStore.fetchWeek()))
+// wrapPromise(dataStore.fetchWeek())
+const week = ref<Promised<FWeek>>({
+  loading: true,
+  data: undefined,
+  error: undefined
+})
 
 const { getSortedTeachers, getSortedRooms, getSortedClasses } = storeToRefs(dataStore)
-
-watch(getSortedTeachers, (o, n) => console.log('sorted', { o, n }))
-
-const filterData = ref<FilterData>({
-  teachers: new Set([]),
-  classes: new Set([]),
-  rooms: new Set([]),
-  globalSearch: ['']
-})
 
 const filterMode = ref<'replace' | 'add'>('replace')
 
 const hideFilters = ref(screenData.value.width < 900)
 
-const queryString = computed(() => {
-  return {
-    teachers: route.query.teachers?.toString().split(','),
-    classes: route.query.classes?.toString().split(','),
-    rooms: route.query.rooms?.toString().split(','),
-    globalSearch: route.query.globalSearch?.toString()
-  }
+const params = reactive<{
+  teachers: string[]
+  classes: string[]
+  rooms: string[]
+  week?: number
+}>({
+  teachers: [],
+  classes: [],
+  rooms: [],
+  week: undefined
 })
 
-const syncFilterData = (data: typeof queryString.value) => {
-  filterData.value.teachers = new Set(
-    data.teachers?.filter((teacher) => dataStore.teachers.get(teacher))
-  )
+function syncFromUrl(q: LocationQuery) {
+  params.teachers = parseQueryParam(q.teachers, qsList) ?? []
+  params.classes = parseQueryParam(q.classes, qsList) ?? []
+  params.rooms = parseQueryParam(q.rooms, qsList) ?? []
+  params.week = parseQueryParam(q.week, qsWeek)
+}
 
-  filterData.value.classes = new Set(
-    data.classes?.filter((class_) => dataStore.classes.get(class_))
-  )
+function emptyAsNull<T>(array: T[]): T[] | null {
+  return array.length === 0 ? null : array
+}
 
-  filterData.value.rooms = new Set(data.rooms?.filter((room) => dataStore.rooms.get(room)))
+function syncToUrl(replace = true) {
+  router.push({
+    query: {
+      teachers: emptyAsNull(params.teachers)?.join(','),
+      classes: emptyAsNull(params.classes)?.join(','),
+      rooms: emptyAsNull(params.rooms)?.join(','),
+      week: params.week?.toString()
+    },
+    replace
+  })
+}
 
-  filterData.value.globalSearch[0] = data.globalSearch ?? ''
+function amerge<T>(a: T[] | undefined, b: T[] | undefined): T[] {
+  // something, something should have used a set...
+  return [...(a ?? []), ...(b ?? [])].filter((v, i, a) => a.indexOf(v) === i)
 }
 
 const changeFilters = (
@@ -68,56 +86,27 @@ const changeFilters = (
     teachers?: string[]
     classes?: string[]
     rooms?: string[]
-    globalSearch?: string
   }
 ) => {
-  let q
-
-  if (mode === 'replace')
-    q = {
-      teachers: [...(data.teachers ?? [])].join(','),
-      classes: [...(data.classes ?? [])].join(','),
-      rooms: [...(data.rooms ?? [])].join(','),
-      globalSearch: data.globalSearch ?? ''
-    }
-  else if (mode === 'add')
-    q = {
-      teachers: [...(queryString.value.teachers ?? []), ...(data.teachers ?? [])].join(','),
-      classes: [...(queryString.value.classes ?? []), ...(data.classes ?? [])].join(','),
-      rooms: [...(queryString.value.rooms ?? []), ...(data.rooms ?? [])].join(','),
-      globalSearch: data.globalSearch ?? ''
-    }
-  else
-    q = {
-      teachers: [...(queryString.value.teachers ?? [])]
-        .filter((teacher) => !data.teachers?.includes(teacher))
-        .join(','),
-      classes: [...(queryString.value.classes ?? [])]
-        .filter((class_) => !data.classes?.includes(class_))
-        .join(','),
-      rooms: [...(queryString.value.rooms ?? [])]
-        .filter((room) => !data.rooms?.includes(room))
-        .join(','),
-      globalSearch:
-        data.globalSearch?.length === 0
-          ? ''
-          : queryString.value.globalSearch?.replace(data.globalSearch ?? '', '')
-    }
-
-  const query = Object.fromEntries(Object.entries(q).filter((x) => x[1] !== ''))
-
-  router.push({
-    query
-  })
+  switch (mode) {
+    case 'replace':
+      params.teachers = data.teachers ?? []
+      params.classes = data.classes ?? []
+      params.rooms = data.rooms ?? []
+      break
+    case 'add':
+      params.teachers = amerge(params.teachers, data.teachers)
+      params.classes = amerge(params.classes, data.classes)
+      params.rooms = amerge(params.rooms, data.rooms)
+      break
+    case 'remove':
+      params.teachers = params.teachers.filter((v) => !data.teachers?.includes(v))
+      params.classes = params.classes.filter((v) => !data.classes?.includes(v))
+      params.rooms = params.rooms.filter((v) => !data.rooms?.includes(v))
+      break
+  }
+  // syncToUrl(false)
 }
-
-onMounted(() => {
-  syncFilterData(queryString.value)
-
-  watch(queryString, (data) => {
-    syncFilterData(data)
-  })
-})
 
 const teacherDropdownData = computed(() =>
   getSortedTeachers.value.map((teacher) => ({
@@ -141,39 +130,22 @@ const classesDropdownData = computed(() =>
 )
 
 const updateOnFilterEvent = (data: {
-  key: keyof typeof filterData.value
+  key: 'teachers' | 'classes' | 'rooms'
   value: {
     display: string
     value: string
   }
 }) => {
-  if (data.key === 'globalSearch') return
-
   changeFilters(filterMode.value, {
     [data.key]: [data.value.value]
   })
-}
-
-const timer = ref()
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const updateGlobalSearch = (e: Event) => {
-  clearTimeout(timer.value)
-
-  timer.value = setTimeout(() => {
-    const data = (e.target as HTMLInputElement).value
-
-    changeFilters('add', {
-      globalSearch: data
-    })
-  }, 500)
 }
 
 const clearFilters = () => {
   changeFilters('replace', {
     teachers: [],
     classes: [],
-    rooms: [],
-    globalSearch: ''
+    rooms: []
   })
 }
 
@@ -193,7 +165,40 @@ const periodModalData = ref<{
   }
 })
 
+function weekInc(i: -1 | 1) {
+  let currentWeek = params.week ?? week.value.data?.week.week
+  if (currentWeek === undefined) return
+
+  currentWeek += i
+
+  if (currentWeek < 1 || currentWeek > 52) return
+  if (currentWeek === dataStore.currentWeek) currentWeek = undefined
+  params.week = currentWeek
+}
+
+function weekSet(week: number | undefined) {
+  if (!!week && isNaN(week)) return
+  if (!!week && (week < 1 || week > 52)) return
+  if (week === dataStore.currentWeek) week = undefined
+  params.week = week
+}
+
 const { t } = useI18n()
+
+syncFromUrl(route.query)
+syncToUrl(true)
+
+week.value = wrapPromise(dataStore.fetchWeek(params.week))
+
+watch(params, () => {
+  syncToUrl(false)
+})
+
+// shitty hack cuz new and old values are the same when for properties of reactive objects
+const paramWeek = computed(() => params.week)
+watch(paramWeek, (n, o) => {
+  if (n !== o) week.value = wrapPromise(dataStore.fetchWeek(n))
+})
 </script>
 
 <template>
@@ -208,22 +213,23 @@ const { t } = useI18n()
         :title="t('home.filterTitles.teachers')"
         :dropdownData="teacherDropdownData"
         @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'teachers' })"
-        :reset="filterData.teachers.size === 0"
+        :reset="params.teachers.length === 0"
       ></FilterInputComponent>
       <FilterInputComponent
         type="dropdown"
         :title="t('home.filterTitles.rooms')"
         :dropdownData="roomDropdownData"
         @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'rooms' })"
-        :reset="filterData.rooms.size === 0"
+        :reset="params.rooms.length === 0"
       ></FilterInputComponent>
       <FilterInputComponent
         type="dropdown"
         :title="t('home.filterTitles.classes')"
         :dropdownData="classesDropdownData"
         @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'classes' })"
-        :reset="filterData.classes.size === 0"
+        :reset="params.classes.length === 0"
       ></FilterInputComponent>
+      <WeekSwitcher :week="params.week ?? week.data?.week.week" @inc="weekInc" @set="weekSet" />
       <!-- <FilterInputComponent
       type="search"
       :placeholder="t('home.filterTitles.search')"
@@ -238,56 +244,57 @@ const { t } = useI18n()
     </div>
   </Teleport>
 
-  <div class="appliedFilters">
-    <template v-for="(filters, filters_key) in filterData" :key="filters_key">
-      <INeedMoreBulletsComponent
-        v-for="(filter, id) in filters"
-        :key="id"
-        :type="filters_key"
-        :dataKey="filter"
-        v-show="filter !== ''"
-        @removeFilter="
-          (data) => {
-            changeFilters('remove', {
-              [data.key]: [data.value]
-            })
-          }
-        "
-      ></INeedMoreBulletsComponent>
-    </template>
-  </div>
-
   <div class="not-timetable loading" v-if="week.loading">
     <SpinnerIcon />
   </div>
   <div class="not-timetable error" v-else-if="week.error">
     <pre>{{ week.error }}</pre>
   </div>
-  <TimetableComponent
-    v-else
-    :filterData="filterData"
-    :week="week.data!.week"
-    :events="week.data!.events"
-    @changeFilter="
-      (data) => {
-        changeFilters('replace', {
-          [data.key]: [...data.value]
-        })
-      }
-    "
-    @openPeriod="
-      (data) => {
-        periodModalData.show = true
-        periodModalData.period = data
-      }
-    "
-  ></TimetableComponent>
+  <template v-else>
+    <div class="appliedFilters">
+      <template v-for="filters_key in ['teachers', 'classes', 'rooms']" :key="filters_key">
+        <INeedMoreBulletsComponent
+          v-for="(filter, id) in params[filters_key as 'teachers' | 'classes' | 'rooms']"
+          :key="id"
+          :type="filters_key as any"
+          :dataKey="filter"
+          v-show="filter !== ''"
+          @removeFilter="
+            (data) => {
+              changeFilters('remove', {
+                [data.key]: [data.value]
+              })
+            }
+          "
+        />
+      </template>
+    </div>
+    <TimetableComponent
+      :filterData="params"
+      :week="week.data!.week"
+      :events="week.data!.events"
+      @changeFilter="
+        (data) => {
+          changeFilters('replace', {
+            [data.key]: [...data.value]
+          })
+        }
+      "
+      @openPeriod="
+        (data) => {
+          periodModalData.show = true
+          periodModalData.period = data
+        }
+      "
+    ></TimetableComponent>
 
-  <PeriodModalComponent
-    :show="periodModalData.show"
-    :periodData="periodModalData.period"
-    @close="periodModalData.show = false"
-  ></PeriodModalComponent>
+    <PeriodModalComponent
+      :current-week="week.data!.week"
+      :show="periodModalData.show"
+      :periodData="periodModalData.period"
+      @close="periodModalData.show = false"
+    ></PeriodModalComponent>
+  </template>
 </template>
 
 <style scoped lang="less">
