@@ -22,9 +22,3 @@ defineEmits<{
     <CirclePlusIcon v-else />
   </button>
 </template>
-
-<style lang="less">
-.filter-mode-button {
-  //   @apply;
-}
-</style>

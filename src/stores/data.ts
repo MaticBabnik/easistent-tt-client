@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { computed, onMounted, ref } from 'vue'
+import { computed, reactive, ref, type UnwrapNestedRefs } from 'vue'
 
 export interface Teacher {
   key: string
@@ -20,7 +20,7 @@ export interface Class {
   id: number
 }
 
-export interface CurrentWeek {
+export interface Week {
   week: number
   dates: Date[]
   hourOffsets: HourOffset[]
@@ -56,58 +56,80 @@ export interface HourOffset {
   endOffset: number
 }
 
+type SlashAllResponse = {
+  teachers: Teacher[]
+  rooms: Room[]
+  classes: Class[]
+  currentWeek: number
+  week: {
+    week: number
+    dates: Date[]
+    events: Event[]
+    hourOffsets: HourOffset[]
+  }
+}
+
+export type Promised<T> = { data: UnwrapNestedRefs<T> | undefined; error?: any; loading: boolean }
+export function wrapPromise<T>(promise: Promise<T>): Promised<T> {
+  const p = reactive({ data: undefined as any, error: undefined, loading: true })
+
+  promise
+    .then((x) => {
+      p.data = x
+      p.loading = false
+    })
+    .catch((x) => {
+      p.error = x
+      p.loading = false
+    })
+
+  return p
+}
+
 export const useDataStore = defineStore('data', () => {
   const teachers = ref<Map<string, Teacher>>(new Map<string, Teacher>())
   const rooms = ref<Map<string, Room>>(new Map<string, Room>())
   const classes = ref<Map<string, Class>>(new Map<string, Class>())
-  const currentWeek = ref<CurrentWeek>({ week: 0, dates: [], hourOffsets: [] })
-  const events = ref<Event[][][]>([])
+  const currentWeek = ref<number>(0)
 
-  const init = async () => {
-    console.log('fetching data...')
+  async function fetchWeek(week?: number): Promise<{ week: Week; events: Event[][][] }> {
+    const url = new URL(import.meta.env.VITE_API_PATH, document.location.href)
+    url.pathname += 'all'
+    if (week) url.searchParams.set('week', week.toString())
 
-    try {
-      const res = await fetch(import.meta.env.VITE_API_PATH + 'all')
-      const data: {
-        teachers?: Teacher[]
-        rooms?: Room[]
-        classes?: Class[]
-        week?: {
-          week: number
-          dates?: Date[]
-          events?: Event[]
-          hourOffsets: HourOffset[]
-        }
-      } = await res.json()
+    const res = await fetch(url.toString())
+    const data = (await res.json()) as SlashAllResponse
 
-      data.teachers?.forEach((teacher) => {
-        teachers.value.set(teacher.key, teacher)
-      })
+    // merge stuff into the store
+    currentWeek.value = data.currentWeek
+    data.teachers.forEach((teacher) => {
+      teachers.value.set(teacher.key, teacher)
+    })
+    data.rooms.forEach((room) => {
+      rooms.value.set(room.key, room)
+    })
+    data.classes.forEach((classroom) => {
+      classes.value.set(classroom.key, classroom)
+    })
 
-      data.rooms?.forEach((room) => {
-        rooms.value.set(room.key, room)
-      })
+    //process events
+    const weekEvents: Event[][][] = []
+    data.week.events.forEach((event) => {
+      if (!weekEvents[event.dayIndex]) weekEvents[event.dayIndex] = []
 
-      data.classes?.forEach((classroom) => {
-        classes.value.set(classroom.key, classroom)
-      })
+      if (!weekEvents[event.dayIndex][event.periodIndex])
+        weekEvents[event.dayIndex][event.periodIndex] = []
 
-      currentWeek.value = {
-        week: data.week?.week ?? 0,
-        dates: data.week?.dates ?? [],
-        hourOffsets: data.week?.hourOffsets ?? []
+      weekEvents[event.dayIndex][event.periodIndex].push(event)
+    })
+
+    return {
+      events: weekEvents,
+      week: {
+        dates: data.week.dates,
+        hourOffsets: data.week.hourOffsets,
+        week: data.week.week
       }
-
-      data.week?.events?.forEach((event) => {
-        if (!events.value[event.dayIndex]) events.value[event.dayIndex] = []
-
-        if (!events.value[event.dayIndex][event.periodIndex])
-          events.value[event.dayIndex][event.periodIndex] = []
-
-        events.value[event.dayIndex][event.periodIndex].push(event)
-      })
-    } catch (e) {
-      console.error(e)
     }
   }
 
@@ -129,11 +151,10 @@ export const useDataStore = defineStore('data', () => {
     teachers,
     rooms,
     classes,
-    currentWeek,
-    events,
     getSortedTeachers,
     getSortedRooms,
     getSortedClasses,
-    init
+
+    fetchWeek
   }
 })

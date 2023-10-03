@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { useDataStore } from '@/stores/data'
 import { useI18n } from 'vue-i18n'
-import type { Event, PeriodFlag } from '@/stores/data'
+import type { Event, PeriodFlag, Week } from '@/stores/data'
 import { useCommonStore } from '@/stores/common'
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import EllipsisIcon from '@/icons/EllipsisIcon.vue'
 import { getColor } from '@/utils/classColor'
 
 export interface FilterData {
@@ -19,14 +18,14 @@ const commonStore = useCommonStore()
 const screenData = storeToRefs(commonStore).screenData
 
 const dataStore = useDataStore()
-const currentWeek = storeToRefs(dataStore).currentWeek
-const events = storeToRefs(dataStore).events
 const teachers = storeToRefs(dataStore).teachers
 const classes = storeToRefs(dataStore).classes
 const rooms = storeToRefs(dataStore).rooms
 
 const props = defineProps<{
   filterData: FilterData
+  week: Week
+  events: Event[][][]
 }>()
 
 const emits = defineEmits<{
@@ -77,7 +76,7 @@ const getFlagColors = (flag: PeriodFlag) => {
 
 const getColumns = computed(() => {
   return {
-    gridTemplateColumns: `min-content repeat(${currentWeek.value.dates.length}, ${
+    gridTemplateColumns: `min-content repeat(${props.week.dates.length}, ${
       mobile.value ? '50vw' : 'minmax(0, 1fr)'
     })`
   }
@@ -93,7 +92,7 @@ const getPosition = (column: number, row: number) => {
 const getFilteredEvents = computed(() => {
   const filtered: Event[][][] = []
 
-  events.value.forEach((day, day_i) => {
+  props.events.forEach((day, day_i) => {
     if (!filtered[day_i]) filtered[day_i] = []
 
     day.forEach((period, period_i) => {
@@ -160,10 +159,10 @@ const getWeekDay = (date: Date) => {
 }
 
 const getTimes = (periodIndex: number) => {
-  const midnight = new Date(currentWeek.value.dates[0]).getTime()
+  const midnight = new Date(props.week.dates[0]).getTime()
 
-  const start = new Date(midnight + currentWeek.value.hourOffsets[periodIndex].startOffset)
-  const end = new Date(midnight + currentWeek.value.hourOffsets[periodIndex].endOffset)
+  const start = new Date(midnight + props.week.hourOffsets[periodIndex].startOffset)
+  const end = new Date(midnight + props.week.hourOffsets[periodIndex].endOffset)
 
   return {
     start: `${start.getHours()}:${start.getMinutes().toString().padStart(2, '0')}`,
@@ -194,9 +193,9 @@ const { t } = useI18n()
     <div
       class="day"
       :style="getPosition(day_i + 2, 0)"
-      v-for="(day, day_i) in currentWeek.dates"
+      v-for="(day, day_i) in week.dates"
       :key="day_i"
-      :class="{ last: day_i === currentWeek.dates.length - 1 }"
+      :class="{ last: day_i === week.dates.length - 1 }"
     >
       <span class="weekday">{{ t(`home.days.${getWeekDay(new Date(day))}`) }}</span>
       <span class="date"
@@ -207,7 +206,7 @@ const { t } = useI18n()
 
     <div
       class="periodH"
-      v-for="i in currentWeek.hourOffsets.length"
+      v-for="i in week.hourOffsets.length"
       :key="i"
       :style="getPosition(1, i + 1)"
     >
@@ -222,11 +221,11 @@ const { t } = useI18n()
     <!-- filler field -->
     <div class="periodH" :style="getPosition(1, 1)"></div>
 
-    <template v-for="(day, day_i) in currentWeek.dates" :key="day">
+    <template v-for="(day, day_i) in week.dates" :key="day">
       <div
         class="period"
         :class="{ spreadable: isSpreadable(getFilteredEvents[day_i][period - 1]) }"
-        v-for="period in currentWeek.hourOffsets.length"
+        v-for="period in week.hourOffsets.length"
         :key="period"
         :style="getPosition(day_i + 2, period + 1)"
       >
@@ -292,9 +291,10 @@ const { t } = useI18n()
   height: 0;
 }
 .timetable {
-  @apply grid rounded-md shadow-lg overflow-auto shadow-2xl bg-gray-100 h-full dark:bg-gray-800 dark:text-gray-200;
+  @apply grid rounded-md overflow-auto shadow-2xl bg-gray-100 h-full dark:bg-gray-800 dark:text-gray-200;
 
   .day {
+    //TODO: is this flex or block?
     @apply flex xl:flex-row flex-col justify-between xl:items-end sticky top-0 px-2 py-1 pt-1 sm:px-4 sm:py-2 sm:pt-3 bg-gray-50 border-r border-gray-200 shadow-sm block dark:bg-gray-700 dark:border-gray-500;
 
     &.last {

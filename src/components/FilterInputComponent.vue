@@ -32,6 +32,11 @@ const inputDropdownData = ref({
   showDropdown: false
 })
 
+//unfuck items
+watch(props, (x) => {
+  inputDropdownData.value.items = x.dropdownData
+})
+
 const searchRef = ref<HTMLInputElement>()
 
 const mouseLeaveLogic = () => {

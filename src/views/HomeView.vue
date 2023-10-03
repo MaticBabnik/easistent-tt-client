@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useDataStore, type Event as PeriodEvent } from '@/stores/data'
+import { useDataStore, type Event as PeriodEvent, wrapPromise } from '@/stores/data'
 import { useI18n } from 'vue-i18n'
 import { computed, onMounted, ref, watch } from 'vue'
 import type { FilterData } from '@/components/TimetableComponent.vue'
@@ -12,6 +12,7 @@ import INeedMoreBulletsComponent from '@/components/INeedMoreBulletsComponent.vu
 import PeriodModalComponent from '@/components/PeriodModalComponent.vue'
 import { useRoute, useRouter } from 'vue-router'
 import FilterModeButton from '@/components/FilterModeButton.vue'
+import SpinnerIcon from '@/icons/SpinnerIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,9 +21,12 @@ const commonStore = useCommonStore()
 const screenData = storeToRefs(commonStore).screenData
 
 const dataStore = useDataStore()
-const getSortedTeachers = storeToRefs(dataStore).getSortedTeachers
-const getSortedRooms = storeToRefs(dataStore).getSortedRooms
-const getSortedClasses = storeToRefs(dataStore).getSortedClasses
+
+const week = ref(wrapPromise(dataStore.fetchWeek()))
+
+const { getSortedTeachers, getSortedRooms, getSortedClasses } = storeToRefs(dataStore)
+
+watch(getSortedTeachers, (o, n) => console.log('sorted', { o, n }))
 
 const filterData = ref<FilterData>({
   teachers: new Set([]),
@@ -115,26 +119,26 @@ onMounted(() => {
   })
 })
 
-const teacherDropdownData = computed(() => {
-  return getSortedTeachers.value.map((teacher) => ({
+const teacherDropdownData = computed(() =>
+  getSortedTeachers.value.map((teacher) => ({
     display: teacher.short,
     value: teacher.key
   }))
-})
+)
 
-const roomDropdownData = computed(() => {
-  return getSortedRooms.value.map((room) => ({
+const roomDropdownData = computed(() =>
+  getSortedRooms.value.map((room) => ({
     display: room.display,
     value: room.key
   }))
-})
+)
 
-const classesDropdownData = computed(() => {
-  return getSortedClasses.value.map((class_) => ({
+const classesDropdownData = computed(() =>
+  getSortedClasses.value.map((class_) => ({
     display: class_.display,
     value: class_.key
   }))
-})
+)
 
 const updateOnFilterEvent = (data: {
   key: keyof typeof filterData.value
@@ -253,8 +257,17 @@ const { t } = useI18n()
     </template>
   </div>
 
+  <div class="not-timetable loading" v-if="week.loading">
+    <SpinnerIcon />
+  </div>
+  <div class="not-timetable error" v-else-if="week.error">
+    <pre>{{ week.error }}</pre>
+  </div>
   <TimetableComponent
+    v-else
     :filterData="filterData"
+    :week="week.data!.week"
+    :events="week.data!.events"
     @changeFilter="
       (data) => {
         changeFilters('replace', {
@@ -307,5 +320,13 @@ const { t } = useI18n()
 
 .hideFilterButton {
   @apply w-8 h-8 rounded-full bg-blue-300 flex items-center justify-center cursor-pointer  active:scale-90 transition-all;
+}
+
+.not-timetable {
+  @apply w-full h-full flex justify-center items-center;
+
+  &.error pre {
+    @apply bg-red-100 dark:bg-red-900 rounded-lg p-4 text-red-700 font-mono dark:text-red-300 border-red-500 border-2;
+  }
 }
 </style>
