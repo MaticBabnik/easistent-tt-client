@@ -102,7 +102,7 @@ export function weekGetActive(week: Week, time: number = Date.now()) {
   if (periodIndex !== -1) {
     const activePeriodStart = week.hourOffsets[periodIndex].startOffset
     // only show "upcoming" as active if it's within 12 hours
-    if (Math.abs(activePeriodStart - time) > DAY / 2) return { dayIndex: -1, periodIndex: -1 }
+    if (Math.abs(activePeriodStart - dayOffset) > DAY / 2) return { dayIndex: -1, periodIndex: -1 }
   }
 
   return { dayIndex, periodIndex }
