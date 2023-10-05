@@ -29,6 +29,10 @@
       "rooms": "Rooms",
       "search": "Search:"
     },
+    "filterMode": {
+      "add": "Add",
+      "replace": "Swap"
+    },
     "showFiltersButton": "Show filters"
   },
   "about": {

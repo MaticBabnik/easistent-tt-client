@@ -18,6 +18,8 @@ export const useCommonStore = defineStore('common', () => {
     })
   }
 
+  const useAltLayout = computed(() => screenData.value.width < 1280)
+
   const initColor = () => {
     if (localStorage.getItem('color') === 'dark') color.value = 'dark'
     else if (localStorage.getItem('color') === 'light') color.value = 'light'
@@ -65,5 +67,5 @@ export const useCommonStore = defineStore('common', () => {
     console.log('Common Store initialized')
   }
 
-  return { initColor, init, setColor, color, initScreen, screenData, getColor }
+  return { initColor, init, setColor, color, initScreen, screenData, getColor, useAltLayout }
 })

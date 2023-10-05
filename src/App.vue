@@ -13,7 +13,7 @@ const i18n = useI18n()
 const { t } = i18n
 
 const commonStore = useCommonStore()
-const screenData = storeToRefs(commonStore).screenData
+const { useAltLayout } = storeToRefs(commonStore)
 const color = storeToRefs(commonStore).color
 
 const getHeader = () => {
@@ -43,8 +43,8 @@ const openNav = ref(false)
   <header>
     <h1>{{ getHeader() }}</h1>
     <div id="filter-teleport"></div>
-    <MenuIcon v-if="screenData.width < 700" @click="openNav = true"></MenuIcon>
-    <nav v-if="screenData.width > 700">
+    <MenuIcon v-if="useAltLayout" @click="openNav = true"></MenuIcon>
+    <nav v-else>
       <RouterLink :to="{ name: 'home' }">{{ t('nav.home') }}</RouterLink>
       <RouterLink :to="{ name: 'about' }">{{ t('nav.about') }}</RouterLink>
       <div class="langSwitcher" @click="cycleLang">
@@ -63,6 +63,8 @@ const openNav = ref(false)
       </div>
     </nav>
     <NavMenu :show="openNav" @close="openNav = false">
+      <div id="alt-filters"></div>
+      <div class="fake-hr"></div>
       <RouterLink :to="{ name: 'home' }" @click="openNav = false">{{ t('nav.home') }}</RouterLink>
       <RouterLink :to="{ name: 'about' }" @click="openNav = false">{{ t('nav.about') }}</RouterLink>
       <div class="langSwitcher" @click="cycleLang">
@@ -133,5 +135,18 @@ header {
 main {
   @apply flex flex-col items-center px-4 lg:px-28 py-4 gap-y-1 sm:gap-y-4;
   height: calc(100% - 3rem);
+}
+
+.fake-hr {
+  @apply bg-gray-300 dark:bg-gray-500  z-10 w-10/12;
+  height: 1px;
+}
+
+#filter-teleport {
+  @apply flex flex-row justify-center items-center gap-x-2;
+}
+
+#alt-filters {
+  @apply flex flex-col gap-y-2 justify-center items-stretch relative;
 }
 </style>

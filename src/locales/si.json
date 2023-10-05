@@ -29,6 +29,10 @@
       "rooms": "Učilnice",
       "search": "Išči:"
     },
+    "filterMode": {
+      "add": "Dodaj",
+      "replace": "Zamenjaj"
+    },
     "showFiltersButton": "Pokaži filtre"
   },
   "about": {

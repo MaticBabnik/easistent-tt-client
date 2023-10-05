@@ -18,6 +18,8 @@ const emit = defineEmits<{
     </button>
     <input
       type="number"
+      inputmode="numeric"
+      enterkeyhint="go"
       min="1"
       max="52"
       :value="props.week"

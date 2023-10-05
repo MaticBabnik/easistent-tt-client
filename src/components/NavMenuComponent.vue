@@ -10,9 +10,9 @@ const emits = defineEmits<{
 
 <template>
   <Transition name="menu">
-    <div class="navContainer" v-if="show">
+    <div class="navContainer" v-show="show">
       <div class="background" @click="emits('close')"></div>
-      <div class="menu" v-if="show">
+      <div class="menu" v-show="show">
         <slot></slot>
       </div>
     </div>

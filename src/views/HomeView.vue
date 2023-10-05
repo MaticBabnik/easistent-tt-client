@@ -24,7 +24,7 @@ import { parseQueryParam, qsList, qsWeek } from '@/queryUtil'
 const route = useRoute()
 const router = useRouter()
 const commonStore = useCommonStore()
-const screenData = storeToRefs(commonStore).screenData
+const { useAltLayout } = storeToRefs(commonStore)
 const dataStore = useDataStore()
 
 // wrapPromise(dataStore.fetchWeek())
@@ -37,8 +37,6 @@ const week = ref<Promised<FWeek>>({
 const { getSortedTeachers, getSortedRooms, getSortedClasses } = storeToRefs(dataStore)
 
 const filterMode = ref<'replace' | 'add'>('replace')
-
-const hideFilters = ref(screenData.value.width < 900)
 
 const params = reactive<{
   teachers: string[]
@@ -202,46 +200,36 @@ watch(paramWeek, (n, o) => {
 </script>
 
 <template>
-  <div class="showFilters" @click="hideFilters = false" v-if="hideFilters">Show filters</div>
-
-  <Teleport to="#filter-teleport">
-    <div class="filters">
-      <!-- v-show="!hideFilters" -->
-      <FilterModeButton v-model:value="filterMode" />
-      <FilterInputComponent
-        type="dropdown"
-        :title="t('home.filterTitles.teachers')"
-        :dropdownData="teacherDropdownData"
-        @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'teachers' })"
-        :reset="params.teachers.length === 0"
-      ></FilterInputComponent>
-      <FilterInputComponent
-        type="dropdown"
-        :title="t('home.filterTitles.rooms')"
-        :dropdownData="roomDropdownData"
-        @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'rooms' })"
-        :reset="params.rooms.length === 0"
-      ></FilterInputComponent>
-      <FilterInputComponent
-        type="dropdown"
-        :title="t('home.filterTitles.classes')"
-        :dropdownData="classesDropdownData"
-        @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'classes' })"
-        :reset="params.classes.length === 0"
-      ></FilterInputComponent>
-      <WeekSwitcher :week="params.week ?? week.data?.week.week" @inc="weekInc" @set="weekSet" />
-      <!-- <FilterInputComponent
-      type="search"
-      :placeholder="t('home.filterTitles.search')"
+  <Teleport :to="useAltLayout ? '#alt-filters' : '#filter-teleport'">
+    <!-- <div class="filters"> -->
+    <FilterModeButton v-model:value="filterMode" />
+    <FilterInputComponent
+      type="dropdown"
+      :title="t('home.filterTitles.teachers')"
+      :dropdownData="teacherDropdownData"
+      @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'teachers' })"
+      :reset="params.teachers.length === 0"
+    ></FilterInputComponent>
+    <FilterInputComponent
+      type="dropdown"
+      :title="t('home.filterTitles.rooms')"
+      :dropdownData="roomDropdownData"
+      @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'rooms' })"
+      :reset="params.rooms.length === 0"
+    ></FilterInputComponent>
+    <FilterInputComponent
+      type="dropdown"
+      :title="t('home.filterTitles.classes')"
       :dropdownData="classesDropdownData"
-      @input="updateGlobalSearch"
-      :reset="filterData.globalSearch[0] === ''"
-    ></FilterInputComponent> -->
-      <div class="clearFilterButton" @click="clearFilters"><TrashIcon></TrashIcon></div>
-      <!-- <div class="hideFilterButton" @click="hideFilters = true" v-if="screenData.width < 900">
-        <ChevronUp></ChevronUp>
-      </div> -->
-    </div>
+      @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'classes' })"
+      :reset="params.classes.length === 0"
+    ></FilterInputComponent>
+
+    <!-- <div class="clearFilterButton" @click="clearFilters"><TrashIcon></TrashIcon></div>  -->
+    <!-- </div> -->
+  </Teleport>
+  <Teleport to="#filter-teleport">
+    <WeekSwitcher :week="params.week ?? week.data?.week.week" @inc="weekInc" @set="weekSet" />
   </Teleport>
 
   <div class="not-timetable loading" v-if="week.loading">
@@ -303,7 +291,7 @@ watch(paramWeek, (n, o) => {
 }
 
 .filters {
-  @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center justify-center p-2;
+  // @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center justify-center p-2;
 }
 .appliedFilters {
   @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center p-2;
