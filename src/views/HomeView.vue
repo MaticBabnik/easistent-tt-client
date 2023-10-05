@@ -188,6 +188,9 @@ syncToUrl(true)
 
 week.value = wrapPromise(dataStore.fetchWeek(params.week))
 
+watch(router.currentRoute, (v) => {
+  syncFromUrl(v.query)
+})
 watch(params, () => {
   syncToUrl(false)
 })

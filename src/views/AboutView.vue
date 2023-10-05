@@ -53,6 +53,7 @@ const activeSubDev = ref('')
 <style lang="less">
 main {
   @apply overflow-y-auto;
+  max-width: 100vw;
   p {
     @apply text-gray-700 dark:text-gray-300;
 
@@ -61,9 +62,13 @@ main {
     }
   }
 
+  .collapse-main {
+    width: 100%;
+  }
+
   pre {
     @apply font-mono bg-slate-200 rounded-lg border border-slate-300
-     text-slate-800 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 p-4;
+     text-slate-800 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 p-4 overflow-auto;
   }
 
   .dev-info-header {

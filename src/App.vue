@@ -8,6 +8,7 @@ import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import NavMenu from '@/components/NavMenuComponent.vue'
 import { ref } from 'vue'
+import LogoIcon from './icons/LogoIcon.vue'
 
 const i18n = useI18n()
 const { t } = i18n
@@ -41,7 +42,10 @@ const openNav = ref(false)
 
 <template>
   <header>
-    <h1>{{ getHeader() }}</h1>
+    <div class="logo">
+      <LogoIcon class="icon" />
+      <h1 v-show="!useAltLayout">{{ getHeader() }}</h1>
+    </div>
     <div id="filter-teleport"></div>
     <MenuIcon v-if="useAltLayout" @click="openNav = true"></MenuIcon>
     <nav v-else>
@@ -95,8 +99,13 @@ header {
 
   height: 3rem;
 
-  h1 {
-    @apply text-blue-300 text-2xl font-bold;
+  .logo {
+    * {
+      @apply text-blue-300 text-2xl font-bold inline align-middle;
+    }
+    .icon {
+      @apply mr-2;
+    }
   }
 
   a {
