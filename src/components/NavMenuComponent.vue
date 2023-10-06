@@ -21,14 +21,14 @@ const emits = defineEmits<{
 
 <style lang="less" scoped>
 .navContainer {
-  @apply absolute w-full h-full top-0 left-0 flex justify-end z-40;
+  @apply fixed top-0 left-0 right-0 bottom-0 flex justify-end z-40;
 
   .background {
-    @apply absolute top-0 left-0 bg-black bg-opacity-50 z-40 w-full h-full;
+    @apply fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 z-40;
   }
 
   .menu {
-    @apply flex flex-col h-full w-4/6 sm:w-72 bg-white shadow-md z-50 dark:bg-gray-700 dark:text-white;
+    @apply flex flex-col  w-4/6 sm:w-72 bg-white shadow-md z-50 dark:bg-gray-700 dark:text-white;
   }
 }
 
