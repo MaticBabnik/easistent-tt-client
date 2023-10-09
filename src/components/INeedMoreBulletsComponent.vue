@@ -9,8 +9,10 @@ const teachers = storeToRefs(dataStore).teachers
 const classes = storeToRefs(dataStore).classes
 const rooms = storeToRefs(dataStore).rooms
 
+export type FilterType = 'teachers' | 'rooms' | 'classes'
+
 const props = defineProps<{
-  type: 'teachers' | 'rooms' | 'classes'
+  type: FilterType
   dataKey: string
 }>()
 

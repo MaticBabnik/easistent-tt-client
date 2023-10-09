@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, reactive, ref, type UnwrapNestedRefs } from 'vue'
+import type { NavigationGuard } from 'vue-router'
+import type { FilterType } from '@/components/INeedMoreBulletsComponent.vue'
 
 export interface Teacher {
   key: string
@@ -108,6 +110,16 @@ export function weekGetActive(week: Week, time: number = Date.now()) {
   return { dayIndex, periodIndex }
 }
 
+function fromOldFilterType(type: string): FilterType | undefined {
+  const FILTER_TYPE_MAP: Record<string, FilterType> = {
+    classes: 'classes',
+    teachers: 'teachers',
+    classrooms: 'rooms'
+  }
+
+  return FILTER_TYPE_MAP[type]
+}
+
 export const useDataStore = defineStore('data', () => {
   const teachers = ref<Map<string, Teacher>>(new Map<string, Teacher>())
   const rooms = ref<Map<string, Room>>(new Map<string, Room>())
@@ -171,6 +183,19 @@ export const useDataStore = defineStore('data', () => {
     return Array.from(classes.value.values()).sort((a, b) => a.display.localeCompare(b.display))
   })
 
+  function redirect(type: string, arg: string): ReturnType<NavigationGuard> {
+    const ft = fromOldFilterType(type)
+    if (!ft) return { name: 'home' }
+
+    const map = { classes, teachers, rooms }[ft].value
+
+    const key = [...map.entries()].find(
+      ([, value]) => ((value as Teacher).short ?? (value as Room).display) == arg
+    )?.[0]
+
+    return key ? { name: 'home', query: { [ft]: key } } : { name: 'home' }
+  }
+
   return {
     teachers,
     rooms,
@@ -180,6 +205,7 @@ export const useDataStore = defineStore('data', () => {
     getSortedClasses,
     time,
     currentWeek,
+    redirect,
     fetchWeek
   }
 })
