@@ -54,26 +54,17 @@ const mobile = computed(() => {
   return screenData.value.width < 900
 })
 
-const getFlagColors = (flag: PeriodFlag) => {
-  switch (flag) {
-    case 'CANCELED':
-      return 'bg-red-500 text-white'
-    case 'REPLACEMENT':
-      return 'bg-yellow-500 text-white'
-    case 'SUBSTITUTE':
-      return 'bg-green-500 text-white'
-    case 'NOTDONE':
-      return 'bg-blue-500 text-white'
-    case 'EVENT':
-      return 'bg-purple-500 text-white'
-    case 'OFFICEHOURS':
-      return 'bg-gray-500 text-white'
-    case 'CLUB':
-      return 'bg-pink-500 text-white'
-    case 'HALFTIME':
-      return 'bg-indigo-500 text-white'
-  }
-}
+const getFlagColors = (flag: PeriodFlag) =>
+  ({
+    CANCELED: 'bg-red-500 text-white',
+    REPLACEMENT: 'bg-yellow-500 text-white',
+    SUBSTITUTE: 'bg-green-500 text-white',
+    NOTDONE: 'bg-blue-500 text-white',
+    EVENT: 'bg-purple-500 text-white',
+    OFFICEHOURS: 'bg-gray-500 text-white',
+    CLUB: 'bg-pink-500 text-white',
+    HALFTIME: 'bg-indigo-500 text-white'
+  })[flag]
 
 const getColumns = computed(() => {
   return {
@@ -90,12 +81,10 @@ const getPosition = (column: number, row: number) => {
   }
 }
 
-const getFilteredEvents = computed(() => {
-  const filtered: Event[][][] = []
+const filteredEvents = computed(() => {
+  const filtered: Event[][][] = props.week.dates.map(() => Array())
 
   props.events.forEach((day, day_i) => {
-    if (!filtered[day_i]) filtered[day_i] = []
-
     day.forEach((period, period_i) => {
       if (!filtered[day_i][period_i]) filtered[day_i][period_i] = []
 
@@ -121,26 +110,10 @@ const isSpreadable = (period: Event[]) => {
   return false
 }
 
-const getWeekDay = (date: Date) => {
-  const day = date.getDay()
-
-  switch (day) {
-    case 1:
-      return 'monday'
-    case 2:
-      return 'tuesday'
-    case 3:
-      return 'wednesday'
-    case 4:
-      return 'thursday'
-    case 5:
-      return 'friday'
-    case 6:
-      return 'saturday'
-    case 7:
-      return 'sunday'
-  }
-}
+const getWeekDay = (date: Date) =>
+  ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][
+    date.getDay()
+  ]
 
 const getTimes = (periodIndex: number) => {
   const midnight = new Date(props.week.dates[0]).getTime()
@@ -216,7 +189,7 @@ onMounted(async () => {
       <div
         class="period"
         :class="{
-          spreadable: isSpreadable(getFilteredEvents[day_i][period - 1]),
+          spreadable: isSpreadable(filteredEvents[day_i][period - 1] ?? []),
           active: day_i == active.dayIndex && period - 1 == active.periodIndex
         }"
         v-for="period in week.hourOffsets.length"
@@ -225,7 +198,7 @@ onMounted(async () => {
       >
         <div
           class="event"
-          v-for="(event, event_i) in getFilteredEvents[day_i][period - 1]"
+          v-for="(event, event_i) in filteredEvents[day_i][period - 1]"
           :key="event_i"
         >
           <span class="title" :style="{ color: getColor(event.title.short) }">{{
@@ -263,17 +236,17 @@ onMounted(async () => {
         </div>
 
         <div
-          v-if="isSpreadable(getFilteredEvents[day_i][period - 1])"
+          v-if="isSpreadable(filteredEvents[day_i][period - 1])"
           class="spread"
           @click="
             emits('openPeriod', {
               date: new Date(day),
               period: period - 1,
-              events: getFilteredEvents[day_i][period - 1]
+              events: filteredEvents[day_i][period - 1]
             })
           "
         >
-          + {{ getFilteredEvents[day_i][period - 1].length - 1 }}
+          + {{ filteredEvents[day_i][period - 1].length - 1 }}
         </div>
       </div>
     </template>
