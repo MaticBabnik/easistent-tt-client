@@ -1,11 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  presets: require('tailwindcss/preset'),
   content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
-  darkMode: 'class',
-  theme: {
-    extend: {}
-  },
-  plugins: [
+  darkMode: 'class'
+}
+
+/*
+
+
     function ({ addBase, theme }) {
       function extractColorVars(colorObj, colorGroup = '') {
         return Object.keys(colorObj).reduce((vars, colorKey) => {
@@ -24,5 +26,5 @@ module.exports = {
         ':root': extractColorVars(theme('colors'))
       })
     }
-  ]
-}
+
+    */

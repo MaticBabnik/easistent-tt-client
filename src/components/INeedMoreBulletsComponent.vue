@@ -64,6 +64,8 @@ const getTitle = computed(() => {
 </template>
 
 <style lang="less">
+@reference "../assets/main.less";
+
 .bullet {
   @apply flex flex-row items-center gap-2 inline-block rounded-full px-2 py-1 text-sm font-medium text-gray-100 shadow-md cursor-pointer transition duration-100  active:scale-90;
 

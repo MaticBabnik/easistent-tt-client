@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { useDevStore } from '@/stores/dev'
 import CollapseComponent from '@/components/CollapseComponent.vue'
 import { ref } from 'vue'
+import SearchableDropdown from '@/components/SearchableDropdown.vue'
 
 const { t } = useI18n()
 
@@ -13,6 +14,9 @@ const activeSubDev = ref('')
 </script>
 
 <template>
+  d:
+  <SearchableDropdown @selected="(k) => console.log(k)" />
+
   <h1 v-html="t('about.title')"></h1>
   <p v-html="t('about.p1')"></p>
   <p v-html="t('about.p2')"></p>
@@ -51,6 +55,8 @@ const activeSubDev = ref('')
 </template>
 
 <style lang="less">
+@reference "../assets/main.less";
+
 main {
   @apply overflow-y-auto;
   max-width: 100vw;

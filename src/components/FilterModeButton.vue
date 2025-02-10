@@ -26,6 +26,8 @@ defineEmits<{
 </template>
 
 <style lang="less">
+@reference "../assets/main.less";
+
 .filter-mode-button {
   @apply p-1 px-2 border border-gray-300 rounded-lg shadow-md overflow-hidden bg-white dark:bg-gray-700 dark:border-gray-500 text-gray-600 dark:text-gray-200 focus:ring-1 ring-cyan-300 text-left;
   min-width: 7rem;

@@ -11,7 +11,6 @@ import { computed, reactive, ref, watch } from 'vue'
 import TimetableComponent from '@/components/TimetableComponent.vue'
 import FilterInputComponent from '@/components/FilterInputComponent.vue'
 import { storeToRefs } from 'pinia'
-import TrashIcon from '@/icons/TrashIcon.vue'
 import { useCommonStore } from '@/stores/common'
 import INeedMoreBulletsComponent from '@/components/INeedMoreBulletsComponent.vue'
 import PeriodModalComponent from '@/components/PeriodModalComponent.vue'
@@ -289,6 +288,8 @@ watch(paramWeek, (n, o) => {
 </template>
 
 <style scoped lang="less">
+@reference "../assets/main.less";
+
 .timetable {
   @apply w-full;
 }

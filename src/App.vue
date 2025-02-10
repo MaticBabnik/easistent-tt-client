@@ -93,6 +93,8 @@ const openNav = ref(false)
 </template>
 
 <style scoped lang="less">
+@reference "./assets/main.less";
+
 header {
   @apply w-full flex justify-between items-center bg-white px-4 py-2 shadow-md
   dark:bg-gray-800;

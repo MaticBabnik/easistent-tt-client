@@ -32,6 +32,8 @@ const emit = defineEmits<{
 </template>
 
 <style lang="less">
+@reference "../assets/main.less";
+
 .week-switcher {
   @apply flex flex-row items-center justify-center border border-gray-300 rounded-lg shadow-md overflow-hidden bg-white dark:bg-gray-700 dark:border-gray-500;
 

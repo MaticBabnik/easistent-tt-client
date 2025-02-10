@@ -14,5 +14,8 @@ export const hashCode = (str: string) => {
 }
 
 export const getColor = (str: string) => {
-  return `hsl(${hashCode(str) % 360}, 100%, ${color.value === 'light' ? '40%' : '80%'})`
+  const hue = hashCode(str) % 360
+  const chroma = 0.2
+  const lightness = color.value === 'light' ? 50 : 76
+  return `oklch(${lightness}% ${chroma} ${hue})`
 }

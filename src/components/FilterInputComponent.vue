@@ -123,6 +123,8 @@ watch(props, () => {
 </template>
 
 <style scoped lang="less">
+@reference "../assets/main.less";
+
 ::-webkit-scrollbar {
   @apply hidden;
 }

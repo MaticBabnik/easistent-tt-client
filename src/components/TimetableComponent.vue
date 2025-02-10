@@ -254,6 +254,8 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="less">
+@reference "../assets/main.less";
+
 ::-webkit-scrollbar {
   height: 0;
 }
@@ -263,7 +265,7 @@ onMounted(async () => {
   .day {
     @apply flex xl:flex-row flex-col justify-between xl:items-end sticky top-0 px-2 py-1 pt-1 sm:px-4 sm:py-2 sm:pt-3 bg-gray-50 border-r border-gray-200 shadow-sm dark:bg-gray-700 dark:border-gray-500;
     &.active {
-      @apply bg-gray-200 dark:bg-gray-600;
+      @apply bg-cyan-200 dark:bg-cyan-600;
     }
     &.last {
       @apply mr-1 border-r-0;
@@ -281,7 +283,7 @@ onMounted(async () => {
   .periodH {
     @apply text-gray-400 text-sm sm:text-base w-12 sm:w-16 flex flex-col items-center text-center justify-between py-2 sm:py-4 sticky left-0 bg-gray-50 border-b dark:bg-gray-700 dark:border-gray-500;
     &.active {
-      @apply bg-gray-200 dark:bg-gray-600;
+      @apply bg-cyan-200 dark:bg-cyan-600;
     }
   }
 
@@ -289,7 +291,7 @@ onMounted(async () => {
     @apply flex 2xl:flex-row flex-col py-2 mx-2 justify-between gap-2; //bg-gray-200 dark:bg-gray-800 dark:border-gray-800 border-x
 
     &.active > * {
-      @apply outline-gray-300 dark:outline-gray-500 outline-1 outline;
+      @apply outline-cyan-300 dark:outline-cyan-500 outline-2 outline;
     }
 
     &.spreadable .event:not(:first-of-type) {

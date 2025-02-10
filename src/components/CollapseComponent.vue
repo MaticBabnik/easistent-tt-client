@@ -30,6 +30,8 @@ function toggle() {
 </template>
 
 <style lang="less">
+@reference "../assets/main.less";
+
 .collapse-main {
   .collapse-header {
     @apply flex flex-row items-center space-x-2 cursor-pointer;
