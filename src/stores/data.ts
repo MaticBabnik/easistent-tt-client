@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { computed, reactive, ref, type UnwrapNestedRefs } from 'vue'
 import type { NavigationGuard } from 'vue-router'
-import type { FilterType } from '@/components/INeedMoreBulletsComponent.vue'
+
+export type FilterType = 'teachers' | 'rooms' | 'classes';
 
 export interface Teacher {
   key: string

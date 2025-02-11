@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useDataStore } from '@/stores/data'
+import { useDataStore, type FilterType } from '@/stores/data'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import XIcon from '@/icons/XIcon.vue'
@@ -9,7 +9,6 @@ const teachers = storeToRefs(dataStore).teachers
 const classes = storeToRefs(dataStore).classes
 const rooms = storeToRefs(dataStore).rooms
 
-export type FilterType = 'teachers' | 'rooms' | 'classes'
 
 const props = defineProps<{
   type: FilterType
@@ -17,7 +16,7 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits<{
-  (e: 'removeFilter', data: { key: 'teachers' | 'rooms' | 'classes'; value: string }): void
+  (e: 'removeFilter', data: { key: FilterType; value: string }): void
 }>()
 
 const getTypeColor = computed(() => {
@@ -67,7 +66,7 @@ const getTitle = computed(() => {
 @reference "../assets/main.less";
 
 .bullet {
-  @apply flex flex-row items-center gap-2 inline-block rounded-full px-2 py-1 text-sm font-medium text-gray-100 shadow-md cursor-pointer transition duration-100  active:scale-90;
+  @apply flex flex-row items-center gap-2 rounded-full px-2 py-1 text-sm font-medium text-gray-100 shadow-md cursor-pointer transition duration-100  active:scale-90;
 
   svg {
     @apply w-4 h-4;

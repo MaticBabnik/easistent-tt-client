@@ -19,6 +19,7 @@ import FilterModeButton from '@/components/FilterModeButton.vue'
 import SpinnerIcon from '@/icons/SpinnerIcon.vue'
 import WeekSwitcher from '@/components/WeekSwitcher.vue'
 import { parseQueryParam, qsList, qsWeek } from '@/queryUtil'
+import VtButton from '@/components/VtButton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -26,7 +27,6 @@ const commonStore = useCommonStore()
 const { useAltLayout } = storeToRefs(commonStore)
 const dataStore = useDataStore()
 
-// wrapPromise(dataStore.fetchWeek())
 const week = ref<Promised<FWeek>>({
   loading: true,
   data: undefined,
@@ -203,7 +203,10 @@ watch(paramWeek, (n, o) => {
 
 <template>
   <Teleport :to="useAltLayout ? '#alt-filters' : '#filter-teleport'">
-    <!-- <div class="filters"> -->
+    <VtButton text="test" />
+    <VtButton text="test2" styling="primary"/>
+    <VtButton text="test2" styling="danger"/>
+
     <FilterModeButton v-model:value="filterMode" />
     <FilterInputComponent
       type="dropdown"
@@ -227,8 +230,6 @@ watch(paramWeek, (n, o) => {
       :reset="params.classes.length === 0"
     ></FilterInputComponent>
 
-    <!-- <div class="clearFilterButton" @click="clearFilters"><TrashIcon></TrashIcon></div>  -->
-    <!-- </div> -->
   </Teleport>
   <Teleport to="#filter-teleport">
     <WeekSwitcher :week="params.week ?? week.data?.week.week" @inc="weekInc" @set="weekSet" />
@@ -242,7 +243,7 @@ watch(paramWeek, (n, o) => {
   </div>
   <template v-else>
     <div class="appliedFilters">
-      <template v-for="filters_key in ['teachers', 'classes', 'rooms']" :key="filters_key">
+      <template v-for="filters_key in ['teachers', 'rooms', 'classes']" :key="filters_key">
         <INeedMoreBulletsComponent
           v-for="(filter, id) in params[filters_key as 'teachers' | 'classes' | 'rooms']"
           :key="id"
@@ -294,9 +295,6 @@ watch(paramWeek, (n, o) => {
   @apply w-full;
 }
 
-.filters {
-  // @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center justify-center p-2;
-}
 .appliedFilters {
   @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center p-2;
 }
