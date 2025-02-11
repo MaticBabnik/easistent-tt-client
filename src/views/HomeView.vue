@@ -20,6 +20,7 @@ import SpinnerIcon from '@/icons/SpinnerIcon.vue'
 import WeekSwitcher from '@/components/WeekSwitcher.vue'
 import { parseQueryParam, qsList, qsWeek } from '@/queryUtil'
 import VtButton from '@/components/VtButton.vue'
+import LogoIcon from '@/icons/LogoIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -203,10 +204,6 @@ watch(paramWeek, (n, o) => {
 
 <template>
   <Teleport :to="useAltLayout ? '#alt-filters' : '#filter-teleport'">
-    <VtButton text="test" />
-    <VtButton text="test2" styling="primary"/>
-    <VtButton text="test2" styling="danger"/>
-
     <FilterModeButton v-model:value="filterMode" />
     <FilterInputComponent
       type="dropdown"
@@ -229,10 +226,23 @@ watch(paramWeek, (n, o) => {
       @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'classes' })"
       :reset="params.classes.length === 0"
     ></FilterInputComponent>
-
   </Teleport>
   <Teleport to="#filter-teleport">
     <WeekSwitcher :week="params.week ?? week.data?.week.week" @inc="weekInc" @set="weekSet" />
+  </Teleport>
+
+  <Teleport to="#filter-teleport">
+    <VtButton text="Add to calendar" disabled>
+      <template #icon>
+        <LogoIcon class="fill-current" />
+      </template>
+    </VtButton>
+
+    <VtButton text="Add to calendar">
+      <template #icon>
+        <LogoIcon class="fill-blue-500" />
+      </template>
+    </VtButton>
   </Teleport>
 
   <div class="not-timetable loading" v-if="week.loading">

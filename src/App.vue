@@ -43,7 +43,7 @@ const openNav = ref(false)
 <template>
   <header>
     <div class="logo">
-      <LogoIcon class="icon" />
+      <LogoIcon class="icon fill-current" />
       <h1 v-show="!useAltLayout">{{ getHeader() }}</h1>
     </div>
     <div id="filter-teleport"></div>

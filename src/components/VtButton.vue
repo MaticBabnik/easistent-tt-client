@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = withDefaults(
   defineProps<{
-    text: string
+    text?: string
     disabled?: boolean
     styling?: 'normal' | 'primary' | 'danger'
   }>(),
@@ -15,10 +15,15 @@ const emit = defineEmits<{ click: [] }>()
 </script>
 
 <template>
-  <button class="button" :class="`vtb-${props.styling}`" :disabled="props.disabled">
-    <slot name="icon"></slot>
+  <button
+    @click="!disabled && emit('click')"
+    class="button"
+    :class="`vtb-${props.styling}`"
+    :disabled="props.disabled"
+  >
+    <slot name="icon" />
 
-    <span class="button-label">
+    <span v-if="props.text" class="button-label">
       {{ props.text }}
     </span>
   </button>
@@ -28,24 +33,14 @@ const emit = defineEmits<{ click: [] }>()
 @reference "../assets/main.less";
 
 .button {
-  @apply p-1 px-2 bg-gray-100 hover:bg-gray-200 rounded-md border;
+  @apply cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed p-1 px-2 flex flex-row items-center gap-2 bg-gray-100 enabled:hover:bg-gray-200 rounded-md text-gray-700 enabled:hover:text-gray-900 font-medium shadow-sm;
 
   &.vtb-primary {
-    @apply bg-blue-100 hover:bg-blue-200;
-    .button-label {
-      @apply text-blue-950 hover:text-blue-900;
-    }
+    @apply bg-blue-500 enabled:hover:bg-blue-600 text-white enabled:hover:text-white;
   }
 
   &.vtb-danger {
-    @apply bg-rose-500 hover:bg-rose-600 border-rose-800;
-    .button-label {
-      @apply text-white hover:text-white;
-    }
-  }
-
-  .button-label {
-    @apply text-gray-700 hover:text-gray-900 font-medium;
+    @apply bg-rose-500 enabled:hover:bg-rose-600 text-white enabled:hover:text-white;
   }
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ArrowRotateIcon from '@/icons/ArrowRotateIcon.vue'
 import CirclePlusIcon from '@/icons/CirclePlusIcon.vue'
-import { useI18n } from 'vue-i18n'
+import VtButton from './VtButton.vue'
 
 type FilterMode = 'replace' | 'add'
 
@@ -12,17 +12,19 @@ defineProps<{
 defineEmits<{
   (e: 'update:value', mode: FilterMode): void
 }>()
+// :text="$t(`home.filterMode.${value}`)"
 </script>
 
 <template>
-  <button
-    class="filter-mode-button"
+  <VtButton
+    class="aspect-square"
     @click="() => $emit('update:value', value == 'add' ? 'replace' : 'add')"
   >
-    <ArrowRotateIcon class="icon" v-if="value == 'replace'" />
-    <CirclePlusIcon class="icon" v-else />
-    {{ $t(`home.filterMode.${value}`) }}
-  </button>
+    <template #icon>
+      <ArrowRotateIcon class="icon" v-if="value == 'replace'" />
+      <CirclePlusIcon class="icon" v-else />
+    </template>
+  </VtButton>
 </template>
 
 <style lang="less">
