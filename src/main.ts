@@ -8,6 +8,9 @@ import router from './router'
 import i18n from './i18n'
 
 import { useCommonStore } from './stores/common'
+import { init } from './analytics'
+
+init()
 
 const app = createApp(App)
 
