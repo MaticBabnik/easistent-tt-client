@@ -71,8 +71,10 @@ type SlashAllResponse = {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Promised<T> = { data: UnwrapNestedRefs<T> | undefined; error?: any; loading: boolean }
 export function wrapPromise<T>(promise: Promise<T>): Promised<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const p = reactive({ data: undefined as any, error: undefined, loading: true })
 
   promise

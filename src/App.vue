@@ -92,7 +92,8 @@ const openNav = ref(false)
   </main>
 </template>
 
-<style scoped lang="less">
+<style scoped>
+@reference './assets/main.css';
 header {
   @apply w-full flex justify-between items-center bg-white px-4 py-2 shadow-md
   dark:bg-gray-800;

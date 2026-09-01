@@ -74,12 +74,13 @@ const getTimes = (periodIndex: number) => {
   </Teleport>
 </template>
 
-<style lang="less" scoped>
+<style scoped>
+@reference '../assets/main.css';
 .modalContainer {
   @apply absolute w-full h-full top-0 left-0 flex justify-center items-center z-40;
 
   .background {
-    @apply absolute top-0 left-0 bg-black bg-opacity-50 z-40 w-full h-full;
+    @apply absolute top-0 left-0 bg-black/50 z-40 w-full h-full;
   }
 
   .modal {

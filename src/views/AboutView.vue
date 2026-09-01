@@ -50,7 +50,8 @@ const activeSubDev = ref('')
   </CollapseComponent>
 </template>
 
-<style lang="less">
+<style>
+@reference '../assets/main.css';
 main {
   @apply overflow-y-auto;
   max-width: 100vw;

@@ -310,13 +310,14 @@ watch(paramWeek, (n, o) => {
   </template>
 </template>
 
-<style scoped lang="less">
+<style scoped>
+@reference '../assets/main.css';
 .timetable {
   @apply w-full;
 }
 
 .filters {
-  // @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center justify-center p-2;
+  /* @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center justify-center p-2; */
 }
 
 .appliedFilters {

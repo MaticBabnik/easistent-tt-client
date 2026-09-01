@@ -1,7 +1,5 @@
 /// <reference types="vite/client" />
 
-import type { PlausibleImpl } from "@/analytics"
-
 interface ImportMetaEnv {
   readonly VITE_BANNER_TITLE: string
   readonly VITE_BASE_URL: string

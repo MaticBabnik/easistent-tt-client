@@ -29,7 +29,8 @@ function toggle() {
   </div>
 </template>
 
-<style lang="less">
+<style>
+@reference '../assets/main.css';
 .collapse-main {
   .collapse-header {
     @apply flex flex-row items-center space-x-2 cursor-pointer;

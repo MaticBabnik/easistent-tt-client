@@ -7,7 +7,7 @@
   </svg>
 </template>
 
-<style lang="less" scoped>
+<style scoped>
 path {
   fill: var(--color-gray-500);
 }
