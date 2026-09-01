@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import ArrowRotateIcon from '@/icons/ArrowRotateIcon.vue'
 import CirclePlusIcon from '@/icons/CirclePlusIcon.vue'
-import { useI18n } from 'vue-i18n'
 
 type FilterMode = 'replace' | 'add'
 
@@ -25,7 +24,8 @@ defineEmits<{
   </button>
 </template>
 
-<style lang="less">
+<style>
+@reference '../assets/main.css';
 .filter-mode-button {
   @apply p-1 px-2 border border-gray-300 rounded-lg shadow-md overflow-hidden bg-white dark:bg-gray-700 dark:border-gray-500 text-gray-600 dark:text-gray-200 focus:ring-1 ring-cyan-300 text-left;
   min-width: 7rem;

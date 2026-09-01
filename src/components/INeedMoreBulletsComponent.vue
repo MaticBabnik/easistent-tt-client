@@ -63,9 +63,11 @@ const getTitle = computed(() => {
   </div>
 </template>
 
-<style lang="less">
+<style>
+@reference '../assets/main.css';
+
 .bullet {
-  @apply flex flex-row items-center gap-2 inline-block rounded-full px-2 py-1 text-sm font-medium text-gray-100 shadow-md cursor-pointer transition duration-100  active:scale-90;
+  @apply flex flex-row items-center gap-2 rounded-full px-2 py-1 text-sm font-medium text-gray-100 shadow-md cursor-pointer transition duration-100  active:scale-90;
 
   svg {
     @apply w-4 h-4;

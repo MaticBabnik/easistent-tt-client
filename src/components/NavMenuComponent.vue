@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{
+defineProps<{
   show: boolean
 }>()
 
@@ -19,12 +19,13 @@ const emits = defineEmits<{
   </Transition>
 </template>
 
-<style lang="less" scoped>
+<style scoped>
+@reference '../assets/main.css';
 .navContainer {
   @apply fixed top-0 left-0 right-0 bottom-0 flex justify-end z-40;
 
   .background {
-    @apply fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 z-40;
+    @apply fixed top-0 left-0 right-0 bottom-0 bg-black/50 z-40;
   }
 
   .menu {

@@ -11,7 +11,6 @@ import { computed, reactive, ref, watch } from 'vue'
 import TimetableComponent from '@/components/TimetableComponent.vue'
 import FilterInputComponent from '@/components/FilterInputComponent.vue'
 import { storeToRefs } from 'pinia'
-import TrashIcon from '@/icons/TrashIcon.vue'
 import { useCommonStore } from '@/stores/common'
 import INeedMoreBulletsComponent from '@/components/INeedMoreBulletsComponent.vue'
 import PeriodModalComponent from '@/components/PeriodModalComponent.vue'
@@ -20,6 +19,7 @@ import FilterModeButton from '@/components/FilterModeButton.vue'
 import SpinnerIcon from '@/icons/SpinnerIcon.vue'
 import WeekSwitcher from '@/components/WeekSwitcher.vue'
 import { parseQueryParam, qsList, qsWeek } from '@/queryUtil'
+import { trackEventOnce } from '@/analytics'
 
 const route = useRoute()
 const router = useRouter()
@@ -96,6 +96,7 @@ const changeFilters = (
       params.teachers = amerge(params.teachers, data.teachers)
       params.classes = amerge(params.classes, data.classes)
       params.rooms = amerge(params.rooms, data.rooms)
+      trackEventOnce('multi-filter-used')
       break
     case 'remove':
       params.teachers = params.teachers.filter((v) => !data.teachers?.includes(v))
@@ -105,6 +106,22 @@ const changeFilters = (
   }
   // syncToUrl(false)
 }
+
+function getCalendarUrl(category: string, id: string): string {
+  const baseUrl = import.meta.env.VITE_API_PATH
+
+  return `${baseUrl}ical/${category}/${id}`
+}
+
+const calendarUrl = computed(() => {
+  if (params.classes.length + params.teachers.length + params.rooms.length !== 1) return undefined
+
+  if (params.classes[0]) return getCalendarUrl('classes', params.classes[0])
+  if (params.teachers[0]) return getCalendarUrl('teachers', params.teachers[0])
+  if (params.rooms[0]) return getCalendarUrl('rooms', params.rooms[0])
+
+  return undefined
+})
 
 const teacherDropdownData = computed(() =>
   getSortedTeachers.value.map((teacher) => ({
@@ -136,14 +153,6 @@ const updateOnFilterEvent = (data: {
 }) => {
   changeFilters(filterMode.value, {
     [data.key]: [data.value.value]
-  })
-}
-
-const clearFilters = () => {
-  changeFilters('replace', {
-    teachers: [],
-    classes: [],
-    rooms: []
   })
 }
 
@@ -219,7 +228,8 @@ watch(paramWeek, (n, o) => {
       :dropdownData="roomDropdownData"
       @dropdownChange="(d) => updateOnFilterEvent({ ...d, key: 'rooms' })"
       :reset="params.rooms.length === 0"
-    ></FilterInputComponent>
+    >
+    </FilterInputComponent>
     <FilterInputComponent
       type="dropdown"
       :title="t('home.filterTitles.classes')"
@@ -259,6 +269,16 @@ watch(paramWeek, (n, o) => {
           "
         />
       </template>
+
+      <a
+        :href="calendarUrl"
+        target="_blank"
+        v-if="calendarUrl"
+        class="ml-2 underline text-blue-600 dark:text-blue-400"
+        @click="trackEventOnce('used-ical-link')"
+      >
+        iCal
+      </a>
     </div>
     <TimetableComponent
       :filterData="params"
@@ -266,6 +286,7 @@ watch(paramWeek, (n, o) => {
       :events="week.data!.events"
       @changeFilter="
         (data) => {
+          trackEventOnce('quick-filter-from-events', { key: data.key })
           changeFilters('replace', {
             [data.key]: [...data.value]
           })
@@ -273,6 +294,7 @@ watch(paramWeek, (n, o) => {
       "
       @openPeriod="
         (data) => {
+          trackEventOnce('used-period-dialog')
           periodModalData.show = true
           periodModalData.period = data
         }
@@ -288,14 +310,16 @@ watch(paramWeek, (n, o) => {
   </template>
 </template>
 
-<style scoped lang="less">
+<style scoped>
+@reference '../assets/main.css';
 .timetable {
   @apply w-full;
 }
 
 .filters {
-  // @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center justify-center p-2;
+  /* @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center justify-center p-2; */
 }
+
 .appliedFilters {
   @apply w-full flex flex-wrap gap-x-4 gap-y-2 items-center p-2;
 }
@@ -317,7 +341,7 @@ watch(paramWeek, (n, o) => {
 }
 
 .hideFilterButton {
-  @apply w-8 h-8 rounded-full bg-blue-300 flex items-center justify-center cursor-pointer  active:scale-90 transition-all;
+  @apply w-8 h-8 rounded-full bg-blue-300 flex items-center justify-center cursor-pointer active:scale-90 transition-all;
 }
 
 .not-timetable {

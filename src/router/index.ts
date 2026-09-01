@@ -46,9 +46,8 @@ const router = createRouter({
 
 const DEFAULT_TITLE = import.meta.env.VITE_APP_TITLE
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   document.title = to.meta.title ? `${DEFAULT_TITLE}: ${to.meta.title}` : DEFAULT_TITLE
-  next()
 })
 
 export default router

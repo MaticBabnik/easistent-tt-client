@@ -3,7 +3,7 @@ import { useDataStore, weekGetActive } from '@/stores/data'
 import { useI18n } from 'vue-i18n'
 import type { Event, PeriodFlag, Week } from '@/stores/data'
 import { useCommonStore } from '@/stores/common'
-import { computed, nextTick, onMounted } from 'vue'
+import { computed, nextTick, onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { getColor } from '@/utils/classColor'
 
@@ -26,6 +26,10 @@ const props = defineProps<{
   week: Week
   events: Event[][][]
 }>()
+
+watch(props.week, () => {
+    console.log({ ...props.week })
+});
 
 const emits = defineEmits<{
   (
@@ -82,10 +86,11 @@ const getPosition = (column: number, row: number) => {
 }
 
 const filteredEvents = computed(() => {
-  const filtered: Event[][][] = props.week.dates.map(() => Array())
+  const filtered: Event[][][] = props.week.dates.map(() => [])
 
   props.events.forEach((day, day_i) => {
     day.forEach((period, period_i) => {
+      if (!filtered[day_i]) filtered[day_i] = [];
       if (!filtered[day_i][period_i]) filtered[day_i][period_i] = []
 
       filtered[day_i][period_i] = period.filter((e) => {
@@ -185,7 +190,7 @@ onMounted(async () => {
     <!-- filler field -->
     <div class="periodH" :style="getPosition(1, 1)"></div>
 
-    <template v-for="(day, day_i) in week.dates" :key="day">
+    <template v-for="(day, day_i) in week.dates" :key="new Date(day).getTime()">
       <div
         class="period"
         :class="{
@@ -253,7 +258,8 @@ onMounted(async () => {
   </div>
 </template>
 
-<style scoped lang="less">
+<style scoped>
+@reference '../assets/main.css';
 ::-webkit-scrollbar {
   height: 0;
 }
@@ -286,7 +292,7 @@ onMounted(async () => {
   }
 
   .period {
-    @apply flex 2xl:flex-row flex-col py-2 mx-2 justify-between gap-2; //bg-gray-200 dark:bg-gray-800 dark:border-gray-800 border-x
+    @apply flex 2xl:flex-row flex-col py-2 mx-2 justify-between gap-2; /* bg-gray-200 dark:bg-gray-800 dark:border-gray-800 border-x */
 
     &.active > * {
       @apply outline-gray-300 dark:outline-gray-500 outline-1 outline;
