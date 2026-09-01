@@ -2,7 +2,7 @@ FROM node:24-bookworm AS build
 
 ARG VITE_BANNER_TITLE="Vegova timetable"
 ARG VITE_APP_TITLE="Vegova timetable"
-ARG VITE_API_PATH="https://vegova.home.sync.si/"
+ARG VITE_API_PATH="https://182.eatt.sync.si/"
 
 ARG VITE_PLAUSIBLE_SITE="v.sync.si"
 ARG VITE_PLAUSIBLE_ENDPOINT="https://plausible.sync.si/api/event"
